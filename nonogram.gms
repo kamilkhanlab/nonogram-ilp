@@ -1,7 +1,7 @@
 $ontext
 
 Nonogram solver, using new ILP formulation published in IEEE T. Games.
-(Publication: https://doi.org/10.1109/TG.2020.3036687)
+Publication: https://doi.org/10.1109/TG.2020.3036687
 
 Written by Kamil Khan on February 22, 2019.
 Last updated: February 26, 2021
