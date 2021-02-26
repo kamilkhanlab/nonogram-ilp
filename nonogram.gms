@@ -1,8 +1,10 @@
 $ontext
 
-Nonogram solver, using new ILP formulation.
+Nonogram solver, using new ILP formulation published in IEEE T. Games.
+(Publication: https://doi.org/10.1109/TG.2020.3036687)
 
 Written by Kamil Khan on February 22, 2019.
+Last updated: February 26, 2021
 
 Expects the following files in the same directory, concerning a puzzle instance
 named [name]:
@@ -104,55 +106,55 @@ parameters
   sigmaR(i,t)    "is t^th block in row i the same color as (t+1)^th block?"
   sigmaC(j,t)    "is t^th block in column j the same color as (t+1)^th block?"
 
-  eR(i,t)        "index of leftmost possible column of t^th block in row i"
-  eC(j,t)        "index of topmost possible row of t^th block in column j"
+  lR(i,t)        "index of leftmost possible column of t^th block in row i"
+  lC(j,t)        "index of topmost possible row of t^th block in column j"
 ;
 
 sigmaR(i,t)$(sR(i,t) and sR(i,t+1) and (cR(i,t)=cR(i,t+1))) = 1;
 
 sigmaC(j,t)$(sC(j,t) and sC(j,t+1) and (cC(j,t)=cC(j,t+1))) = 1;
 
-eR(i,t)$(sR(i,t) and ord(t)=1) = 1;
+lR(i,t)$(sR(i,t) and ord(t)=1) = 1;
 loop(t,
-  eR(i,t)$(sR(i,t-1) and sR(i,t)) = eR(i,t-1) + sR(i,t-1) + sigmaR(i,t-1);
+  lR(i,t)$(sR(i,t-1) and sR(i,t)) = lR(i,t-1) + sR(i,t-1) + sigmaR(i,t-1);
 );
 
-eC(j,t)$(sC(j,t) and ord(t)=1) = 1;
+lC(j,t)$(sC(j,t) and ord(t)=1) = 1;
 loop(t,
-  eC(j,t)$(sC(j,t-1) and sC(j,t)) = eC(j,t-1) + sC(j,t-1) + sigmaC(j,t-1);
+  lC(j,t)$(sC(j,t-1) and sC(j,t)) = lC(j,t-1) + sC(j,t-1) + sigmaC(j,t-1);
 );
 
-* computing lR and lC is more complicated than computing eR and eC
+* computing uR and uC is more complicated than computing lR and lC
 parameters
   m              "number of rows"
   n              "number of columns"
   nBlocksR(i)    "number of blocks in row i"
   nBlocksC(j)    "number of blocks in column j"
-  elOffsetR(i)   "wiggle-room in row i"
-  elOffsetC(j)   "wiggle-room in column j"
-  lR(i,t)        "index of rightmost possible leftmost column of t^th block in row i"
-  lC(j,t)        "index of bottommost possible topmost row of t^th block in column j"
+  uOffsetR(i)   "wiggle-room in row i"
+  uOffsetC(j)   "wiggle-room in column j"
+  uR(i,t)        "index of rightmost possible leftmost column of t^th block in row i"
+  uC(j,t)        "index of bottommost possible topmost row of t^th block in column j"
 ;
 m = sum((i,t)$(sR(i,t) and (ord(t)=1)),1);
 n = sum((j,t)$(sC(j,t) and (ord(t)=1)),1);
-nBlocksR(i) = sum(t$sR(i,t),1);
-nBlocksC(j) = sum(t$sC(j,t),1);
-elOffsetR(i)$nBlocksR(i) = sum(t$(ord(t)=nBlocksR(i)), n+1-sR(i,t)-eR(i,t));
-elOffsetC(j)$nBlocksC(j) = sum(t$(ord(t)=nBlocksC(j)), m+1-sC(j,t)-eC(j,t));
-lR(i,t)$sR(i,t) = eR(i,t) + elOffsetR(i);
-lC(j,t)$sC(j,t) = eC(j,t) + elOffsetC(j);
+bR(i) = sum(t$sR(i,t),1);
+bC(j) = sum(t$sC(j,t),1);
+uOffsetR(i)$bR(i) = sum(t$(ord(t)=bR(i)), n+1-sR(i,t)-lR(i,t));
+uOffsetC(j)$bC(j) = sum(t$(ord(t)=bC(j)), m+1-sC(j,t)-lC(j,t));
+uR(i,t)$sR(i,t) = lR(i,t) + uOffsetR(i);
+uC(j,t)$sC(j,t) = lC(j,t) + uOffsetC(j);
 
 * summation ranges used by model
 sets
-  setSR(i,t,j)   "columns j in which t^th block in row i may begin"
-  setSC(j,t,i)   "rows i in which t^th block in column j may begin"
-  setHR(i,t,j,jj,c) "if t^th block in row i starts in col jj, would cell (i,j) be part of the same block with color c?"
-  setHC(j,t,i,ii,c) "if t^th block in col j starts in row ii, would cell (i,j) be part of the same block with color c?"
+  setFR(i,t,j)   "columns j in which t^th block in row i may begin"
+  setFC(j,t,i)   "rows i in which t^th block in column j may begin"
+  setMOR(i,t,j,jj,c) "if t^th block in row i starts in col jj, would cell (i,j) be part of the same block with color c?"
+  setMOC(j,t,i,ii,c) "if t^th block in col j starts in row ii, would cell (i,j) be part of the same block with color c?"
 ;
-setSR(i,t,j)$(sR(i,t) and eR(i,t)<=ord(j) and ord(j)<=lR(i,t)) = yes;
-setSC(j,t,i)$(sC(j,t) and eC(j,t)<=ord(i) and ord(i)<=lC(j,t)) = yes;
-setHR(i,t,j,jj,c)$(cR(i,t)=ord(c) and setSR(i,t,jj) and ord(j)<=n and ord(jj)<=ord(j) and ord(j)<ord(jj)+sR(i,t)) = yes;
-setHC(j,t,i,ii,c)$(cC(j,t)=ord(c) and setSC(j,t,ii) and ord(i)<=m and ord(ii)<=ord(i) and ord(i)<ord(ii)+sC(j,t)) = yes;
+setFR(i,t,j)$(sR(i,t) and lR(i,t)<=ord(j) and ord(j)<=uR(i,t)) = yes;
+setFC(j,t,i)$(sC(j,t) and lC(j,t)<=ord(i) and ord(i)<=uC(j,t)) = yes;
+setMOR(i,t,j,jj,c)$(cR(i,t)=ord(c) and setFR(i,t,jj) and ord(j)<=n and ord(jj)<=ord(j) and ord(j)<ord(jj)+sR(i,t)) = yes;
+setMOC(j,t,i,ii,c)$(cC(j,t)=ord(c) and setFC(j,t,ii) and ord(i)<=m and ord(ii)<=ord(i) and ord(i)<ord(ii)+sC(j,t)) = yes;
 
 * decision variables
 variables
@@ -179,39 +181,39 @@ $endIf
 ;
 
 blockBeginsOnceR(i,t)$sR(i,t)..
-  sum(setSR(i,t,j),y(i,t,j)) =e= 1;
+  sum(setFR(i,t,j),y(i,t,j)) =e= 1;
 
 blockBeginsOnceC(j,t)$sC(j,t)..
-  sum(setSC(j,t,i),x(j,t,i)) =e= 1;
+  sum(setFC(j,t,i),x(j,t,i)) =e= 1;
 
 blockOrderR(i,t)$(sR(i,t) and sR(i,t+1))..
-  sum(setSR(i,t,j),ord(j)*y(i,t,j)) + eR(i,t+1) - eR(i,t)
-    =l= sum(setSR(i,t+1,j),ord(j)*y(i,t+1,j));
+  sum(setFR(i,t,j),ord(j)*y(i,t,j)) + lR(i,t+1) - lR(i,t)
+    =l= sum(setFR(i,t+1,j),ord(j)*y(i,t+1,j));
 
 blockOrderC(j,t)$(sC(j,t) and sC(j,t+1))..
-  sum(setSC(j,t,i),ord(i)*x(j,t,i)) + eC(j,t+1) - eC(j,t)
-    =l= sum(setSC(j,t+1,i),ord(i)*x(j,t+1,i));
+  sum(setFC(j,t,i),ord(i)*x(j,t,i)) + lC(j,t+1) - lC(j,t)
+    =l= sum(setFC(j,t+1,i),ord(i)*x(j,t+1,i));
 
 consistentColor(i,j,c)$(ord(i)<=m and ord(j)<=n)..
-  sum(setHR(i,t,j,jj,c),y(i,t,jj))
-    =e= sum(setHC(j,t,i,ii,c),x(j,t,ii));
+  sum(setMOR(i,t,j,jj,c),y(i,t,jj))
+    =e= sum(setMOC(j,t,i,ii,c),x(j,t,ii));
 
 $ifThen set useExtraConstraints
 oneBlockR(i,j)$(ord(i)<=m and ord(j)<=n)..
-   sum(setHR(i,t,j,jj,c),y(i,t,jj)) =l= 1;
+   sum(setMOR(i,t,j,jj,c),y(i,t,jj)) =l= 1;
 oneBlockC(i,j)$(ord(i)<=m and ord(j)<=n)..
-   sum(setHC(j,t,i,ii,c),x(j,t,ii)) =l= 1;
+   sum(setMOC(j,t,i,ii,c),x(j,t,ii)) =l= 1;
 $endIf
 
 dummyEq..
   dummyObjective =e= 0;
 
 * initial values
-loop((i,t,j)$(sR(i,t) and ord(j)=eR(i,t)),
+loop((i,t,j)$(sR(i,t) and ord(j)=lR(i,t)),
   y.l(i,t,j) = 1;
 );
 
-loop((j,t,i)$(sC(j,t) and ord(i)=eC(j,t)),
+loop((j,t,i)$(sC(j,t) and ord(i)=lC(j,t)),
   x.l(j,t,i) = 1;
 );
 
@@ -224,7 +226,7 @@ solve nonogram minimizing dummyObjective using MIP;
 
 * construct and export solved nonogram
 parameter z(i,j)         "color of cell (i,j) in completed nonogram";
-z(i,j) = sum(setHR(i,t,j,jj,c),y.l(i,t,jj)*cR(i,t));
+z(i,j) = sum(setMOR(i,t,j,jj,c),y.l(i,t,jj)*cR(i,t));
 option decimals = 0;
 File solutionFile /%nonogramName%Solution.csv/;
 put solutionFile;
