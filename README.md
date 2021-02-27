@@ -57,6 +57,8 @@ This implementation has been tested in GAMS 24.2.3, with the ILP solvers CPLEX 1
 # References
 
 - K.A. Khan, [Solving nonograms using integer programming without
-  coloring](https://doi.org/10.1109/TG.2020.3036687), /IEEE T. Games/,
-  in press. This article presents the new nonogram formulation used by
+  coloring](https://doi.org/10.1109/TG.2020.3036687), _IEEE T. Games_,
+  in press.
+
+  This article presents the new nonogram formulation used by
   this implementation, and demonstrates its effectiveness.
