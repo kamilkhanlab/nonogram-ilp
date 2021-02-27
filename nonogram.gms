@@ -25,7 +25,7 @@ Output is written to [name]Solution.csv.
 $offtext
 
 * name of nonogram, used to find input files and name output files
-$if not set nonogramName $set nonogramName p2712
+$if not set nonogramName $set nonogramName p16
 
 * set the following compile-time variables:
 *   size: upper bound on number of rows and number of columns
