@@ -1,7 +1,20 @@
 # Overview
 This is a simple GAMS implementation that solves
 nonograms/paint-by-number/crucipixel/picross puzzles as integer linear
-programs (ILP). An [efficient new ILP formulation](https://doi.org/10.1109/TG.2020.3036687) is employed, and does not proceed by coloring the cells one by one.
+programs (ILP). An [efficient new ILP
+formulation](https://doi.org/10.1109/TG.2020.3036687) is employed, and
+does not proceed by coloring the cells one by one.
+
+We also have an analogous [Julia
+implementation](https://github.com/kamilkhanlab/NonogramSolver.jl)
+that uses JuMP.
+
+If you make use of this implementation in your own work, please cite
+the accompanying article:
+
+> Kamil A. Khan, Solving nonograms using integer programming without
+> coloring, *IEEE Transactions on Games*, 14(1): 56-63, 2022.
+> doi:[10.1109/TG.2020.3036687](https://doi.org/10.1109/TG.2020.3036687)
 
 # Usage
 
